@@ -185,11 +185,11 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     fields = (
-            'first_name',
-            'last_name',
-            'username',
-            'email'
-        )
+        'first_name',
+        'last_name',
+        'username',
+        'email'
+    )
     template_name = 'blog/user.html'
     slug_field = 'username'
     slug_url_kwarg = 'username'
