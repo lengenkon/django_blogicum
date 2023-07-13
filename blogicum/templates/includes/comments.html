@@ -13,7 +13,7 @@
     <div class="media-body">
       <h5 class="mt-0">
         <a href="{% url 'blog:profile' comment.author.username %}" name="comment_{{ comment.id }}">
-          @{{ object.author.username }} 
+          @{{ comment.author.username }} 
         </a>
       </h5>
       <small class="text-muted">{{ comment.created_at }}</small>

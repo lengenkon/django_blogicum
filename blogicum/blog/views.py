@@ -36,38 +36,27 @@ class HomePage(ListView):
 
 
 class UserListView(ListView):
-    model = User
     template_name = 'blog/profile.html'
     paginate_by = 10
-    ordering = '-pub_date'
 
     def get_queryset(self):
         author = get_object_or_404(
-            User.objects.filter(
-                username=self.kwargs['username_slug']
-            )
+            User, username=self.kwargs['username_slug']
+        )
+        all_posts = (
+            Post
+            .objects
+            .select_related('category', 'location', 'author')
+            .filter(author=author)
+            .order_by('-pub_date')
+            .annotate(comment_count=Count('comments'))
         )
         if author == self.request.user:
-            return Post.objects.select_related(
-                'category', 'location', 'author',
-            ).filter(
-                author=author
-            ).order_by(
-                '-pub_date'
-            ).annotate(
-                comment_count=Count('comments'),
-            )
-        return Post.objects.select_related(
-            'category', 'location', 'author',
-        ).filter(
-            author=author,
+            return all_posts
+        return all_posts.filter(
             is_published=True,
             pub_date__lte=timezone.now(),
             category__is_published=True
-        ).order_by(
-            '-pub_date'
-        ).annotate(
-            comment_count=Count('comments'),
         )
 
     def get_context_data(self, **kwargs):
@@ -86,10 +75,9 @@ class PostDetailView(DetailView):
 
     def dispatch(self, request, *args, **kwargs):
         instance = get_object_or_404(Post, pk=kwargs['pk'])
-        if instance.author != request.user and instance.is_published is False:
+        if instance.author != request.user and not instance.is_published:
             raise Http404
-        else:
-            return super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -121,7 +109,6 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class CategoryListView(ListView):
-    model = Post
     template_name = 'blog/category.html'
     paginate_by = 10
 
